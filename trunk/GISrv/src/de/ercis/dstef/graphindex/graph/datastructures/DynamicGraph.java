@@ -99,16 +99,14 @@ public class DynamicGraph implements IDynamicGraph {
 	@Override
 	public void addVertex() {
 		adjacencyList.add(new HashSet<Integer>());
+		labels.add("");
 		vertexCount++;
 	}
 
 	@Override
 	public void addVertex(String label) {
 		addVertex();
-		labels.set(vertexCount - 1, label);
-		if(!labelMap.containsKey(label) || labelMap.get(label) == null)
-			labelMap.put(label, new HashSet<Integer>());
-		labelMap.get(label).add(vertexCount - 1);
+		setVertexLabel(vertexCount - 1, label);
 	}
 
 	@Override
@@ -132,13 +130,30 @@ public class DynamicGraph implements IDynamicGraph {
 	@Override
 	public void setVertexLabel(int vertex, String label)
 			throws IndexOutOfBoundsException {
-		// TODO Auto-generated method stub
-
+		if(!vertexExists(vertex))
+			throw new IndexOutOfBoundsException("Vertex "+vertex+" does not exist");
+		if(labels.size() > vertex && labels.get(vertex)!=null)
+		{
+			String prevLabel = labels.get(vertex);
+			if(labelMap.containsKey(prevLabel))
+				if(labelMap.get(prevLabel)!= null)
+					labelMap.get(prevLabel).remove(vertex);
+		}
+		labels.set(vertex, label);
+		if(!labelMap.containsKey(label) || labelMap.get(label) == null)
+			labelMap.put(label, new HashSet<Integer>());
+		labelMap.get(label).add(vertex);
+		System.out.println("Label for index set to "+labels.get(vertex)+" for input "+label);
 	}
 	
 	private boolean vertexExists(int vertex)
 	{
 		return (vertex >= 0 && vertex < getVertexCount());
+	}
+
+	@Override
+	public Set<Integer> getVerticesByLabel(String label) {
+		return labelMap.get(label);
 	}
 
 }

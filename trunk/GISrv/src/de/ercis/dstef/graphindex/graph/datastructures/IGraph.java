@@ -55,5 +55,13 @@ public interface IGraph {
 	 * @return
 	 */
 	Map<String, Set<Integer>> getLabelMap();
+	
+
+	/**
+	 * Returns list of vertices with given label
+	 * @param label
+	 * @return list of vertices
+	 */
+	Set<Integer> getVerticesByLabel(String label);
 
 }
