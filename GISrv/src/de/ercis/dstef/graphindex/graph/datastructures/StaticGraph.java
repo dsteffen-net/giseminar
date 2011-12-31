@@ -2,6 +2,7 @@ package de.ercis.dstef.graphindex.graph.datastructures;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +22,13 @@ public class StaticGraph implements IGraph {
 		
 		adjacencyList = new int[vertexCount][];
 		labels = g.getLabelArray();
-		labelMap = new HashMap<String, Set<Integer>>(g.getLabelMap());
+		for(int i=0; i<labels.length;i++)
+		{
+			String label = labels[i];
+			if(labelMap.get(label)==null)
+				labelMap.put(label, new HashSet<Integer>());
+			labelMap.get(label).add(i);
+		}
 		
 		for(int i = 0; i < vertexCount; i++)
 		{
@@ -82,7 +89,7 @@ public class StaticGraph implements IGraph {
 	public int[] getAdjacenciesForVertex(int vertex) {
 		if(!vertexExists(vertex))
 			throw new IndexOutOfBoundsException("Vertex "+vertex+" does not exist");
-		return adjacencyList[vertex].clone();
+		return adjacencyList[vertex]!=null?adjacencyList[vertex].clone():new int[0];
 	}
 	@Override
 	public String[] getLabelArray() {
@@ -98,6 +105,10 @@ public class StaticGraph implements IGraph {
 		return (vertex >= 0 || vertex < vertexCount);
 	}
 	
+	@Override
+	public Set<Integer> getVerticesByLabel(String label) {
+		return labelMap.get(label);
+	}
 	
 
 }

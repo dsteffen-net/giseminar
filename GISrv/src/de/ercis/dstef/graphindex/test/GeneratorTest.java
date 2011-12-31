@@ -1,5 +1,6 @@
 package de.ercis.dstef.graphindex.test;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 import de.ercis.dstef.graphindex.graph.datastructures.IGraph;
@@ -18,13 +19,14 @@ public class GeneratorTest {
 		GraphGeneratorOutput out;
 		
 		job.avg_size_freq_subgraphs = 15;
-		job.num_freq_sub = 10;
+		job.num_freq_sub = 5;
 		job.prob = 0.3;
 		job.avg_size_transactions = 80;
-		job.num_transactions = 20;
-		job.num_vertex_labels = 15;
+		job.num_transactions = 50;
+		job.num_vertex_labels = 50;
 		
-		out = GraphGenerator.generate(job);
+		GraphGenerator gen = new GraphGenerator(job);
+		out = gen.generate();
 		
 		Iterator<IGraph> it = out.freq_graph.iterator();
 		
@@ -33,6 +35,11 @@ public class GeneratorTest {
 		{
 			System.out.println("Graph "+line++);
 			IGraph g = it.next();
+			System.out.println("Labels ("+g.getLabelArray().length+"):");
+			String labels = "";
+			for(String s:g.getLabelArray())
+				labels += s+", ";
+			System.out.println(labels);
 			boolean adjMatrix[][] = g.getAdjacencyMatrix(); 
 			for(boolean[] ba : adjMatrix)
 			{
@@ -75,7 +82,8 @@ public class GeneratorTest {
 			System.out.println("---------------------");	
 		}
 		
-			
+		IsomorphismTest i = new IsomorphismTest();
+		i.testIso1(out);
 		
 
 	}
