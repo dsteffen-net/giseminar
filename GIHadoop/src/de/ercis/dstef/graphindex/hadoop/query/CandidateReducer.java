@@ -20,15 +20,20 @@ public class CandidateReducer extends MapReduceBase
   public void reduce(IntWritable key, Iterator<WritableIntegerSet> values,
       OutputCollector<IntWritable,WritableIntegerSet> output, Reporter reporter) throws IOException {
 
-	  int i = 0;
 	  WritableIntegerSet finalCandidateSet = new WritableIntegerSet();
-	  Set<Integer> partialCandidateSet = new HashSet<Integer>();
+	  Set<Integer> partialCandidateSet = null;
     while (values.hasNext()) 
     {
-    	if(i == 0)
-    		partialCandidateSet.addAll(values.next().getIntegerSet());
+
+    	Set<Integer> currentCandidateSet = values.next().getIntegerSet();
+
+    	if(partialCandidateSet == null)
+    	{
+    		partialCandidateSet = new HashSet<Integer>();
+    		partialCandidateSet.addAll(currentCandidateSet);
+    	}  		
     	else
-    		partialCandidateSet.retainAll(values.next().getIntegerSet());
+    		partialCandidateSet.retainAll(currentCandidateSet);
     }
     
     finalCandidateSet.setIntegerSet(partialCandidateSet);

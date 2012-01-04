@@ -20,11 +20,48 @@ public class QueryDriver {
 	
 	public void processQueryBatch(String run)
 	{
+//		computeSimpleQuery(run);
 		codeBatch(run);
 		computeCandidateSet(run);
 		computeAnswerSet(run);
 	}
 	
+	private void computeSimpleQuery(String run) {
+		// TODO Auto-generated method stub
+		JobClient client = new JobClient();
+	    JobConf conf = new JobConf(QueryDriver.class);
+
+	    // specify output types
+	    conf.setOutputKeyClass(IntWritable.class);
+	    conf.setOutputValueClass(WritableIntegerSet.class);
+
+	    // specify input and output dirs
+	   conf.setInputFormat(SequenceFileInputFormat.class);
+	   conf.setOutputFormat(SequenceFileOutputFormat.class);
+
+	    // specify a mapper
+	    conf.setMapperClass(QueryCoderMapperB.class);
+
+	    // specify a reducer
+//	    conf.setReducerClass(CandidateReducer.class);
+//	    conf.setCombinerClass(IndexerReducer.class);
+	    
+	    Path indexPath = new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.INDEX_DIR+"/part-00000");
+	    DistributedCache.addCacheFile(indexPath.toUri(), conf);
+	    
+	    FileInputFormat.setInputPaths(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.QUERY_DIR));
+	    FileOutputFormat.setOutputPath(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.CANDIDATE_DIR));
+
+	    client.setConf(conf);
+	    
+	    try {
+	      JobClient.runJob(conf);
+	    } catch (Exception e) {
+	      e.printStackTrace();
+	    }
+		
+	}
+
 	private void computeAnswerSet(String run) {
 		
 		// TODO Auto-generated method stub
@@ -37,7 +74,7 @@ public class QueryDriver {
 
 	    // specify input and output dirs
 	   conf.setInputFormat(SequenceFileInputFormat.class);
-	   conf.setOutputFormat(TextOutputFormat.class);
+	   conf.setOutputFormat(SequenceFileOutputFormat.class);
 
 	    // specify a mapper
 	    conf.setMapperClass(VerificationMapper.class);

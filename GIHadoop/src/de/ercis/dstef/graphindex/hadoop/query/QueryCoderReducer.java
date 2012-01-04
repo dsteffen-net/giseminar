@@ -1,6 +1,7 @@
 package de.ercis.dstef.graphindex.hadoop.query;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -19,13 +20,14 @@ public class QueryCoderReducer extends MapReduceBase
   public void reduce(Text key, Iterator<IntWritable> values,
       OutputCollector<Text,WritableIntegerSet> output, Reporter reporter) throws IOException {
 
-	  WritableIntegerSet indexSet = new WritableIntegerSet();
-	  
+	  WritableIntegerSet writableQueryIdSet = new WritableIntegerSet();
+	  Set<Integer> queryIdSet = new HashSet<Integer>();
     while (values.hasNext()) {
-      IntWritable value = (IntWritable) values.next();
-      indexSet.getIntegerSet().add(value.get());
+      IntWritable value = values.next();
+      queryIdSet.add(value.get());
     }
-
-    output.collect(key, indexSet);
+    
+    writableQueryIdSet.setIntegerSet(queryIdSet);
+    output.collect(key, writableQueryIdSet);
   }
 }

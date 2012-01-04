@@ -25,11 +25,14 @@ import de.ercis.dstef.graphindex.hadoop.writables.WritableGraph;
 public class Initializer {
 	
 	
-	public void initialize(String run, GraphGeneratorJob job)
+	public GraphGeneratorOutput initialize(String run, GraphGeneratorJob job)
 	{
 		Configuration conf = new Configuration();
 		conf.addResource(new Path("/usr/local/hadoop/conf/core-site.xml"));
 	    conf.addResource(new Path("/usr/local/hadoop/conf/hdfs-site.xml"));
+	    
+        GraphGenerator gen = new GraphGenerator(job);
+        GraphGeneratorOutput output = gen.generate();
 	    
 	    try
 	    {
@@ -46,15 +49,15 @@ public class Initializer {
 	        
 	    	if (fileSystem.exists(pathA)) {
 	            System.out.println("File " + pathDestA + " already exists");
-	            return;
+	            return null;
 	        }
 	        if (fileSystem.exists(pathB)) {
 	            System.out.println("File " + pathDestB + " already exists");
-	            return;
+	            return null;
 	        }
 	        if (fileSystem.exists(pathC)) {
 	            System.out.println("File " + pathDestC + " already exists");
-	            return;
+	            return null; 
 	        }
 
 	        
@@ -62,8 +65,7 @@ public class Initializer {
 	        fileSystem.mkdirs(pathB);
 	        fileSystem.mkdirs(pathC);
 	    	
-	        GraphGenerator gen = new GraphGenerator(job);
-	        GraphGeneratorOutput output = gen.generate();
+
 	        
 	        String filePathDest = pathDestB + FullTestBattery.INIT_FILE;
 	    	Path filePath = new Path(filePathDest);
@@ -99,7 +101,7 @@ public class Initializer {
 	        queryWriter.close();
 	        
 	        
-	        int i = 0;
+	        int i = j;
 	        for(IGraph g:output.graphs)
 	        {
 	        	IntWritable key = new IntWritable(i++);
@@ -110,26 +112,20 @@ public class Initializer {
 	        initWriter.sync();
 	        initWriter.close();
 	        
-	        String filePathD = pathDestA + "/subFrequency";
-	    	Path fPath = new Path(filePathD);
-	    	
-	        FSDataOutputStream out = fileSystem.create(fPath);
-	        out.writeUTF("Num Occurrences:");
-	        out.writeBytes("\n");
-	        for(int nfg = 0; i<output.freq_graph.size() ; i++)
-	        {
-	        	int size = 0;
-	        	if(output.structureIndex.get(output.freq_graph.get(nfg)) != null)
-	        		size = output.structureIndex.get(output.freq_graph.get(nfg)).size();
-	        	out.writeUTF(nfg + ": "+size);
-	        	out.writeBytes("\n");
-	        }
-	        
-	        
-	       
-
-	        // Close all the file descripters
-//	        out.close();
+//	        String filePathD = pathDestA + "/subFrequency";
+//	    	Path fPath = new Path(filePathD);
+//	    	
+//	        FSDataOutputStream out = fileSystem.create(fPath);
+//	        out.writeUTF("Num Occurrences:");
+//	        out.writeBytes("\n");
+//	        for(int nfg = 0; i<output.freq_graph.size() ; i++)
+//	        {
+//	        	int size = 0;
+//	        	if(output.structureIndex.get(output.freq_graph.get(nfg)) != null)
+//	        		size = output.structureIndex.get(output.freq_graph.get(nfg)).size();
+//	        	out.writeUTF(nfg + ": "+size);
+//	        	out.writeBytes("\n");
+//	        }
 	        
 	        
 	        fileSystem.close();
@@ -138,7 +134,7 @@ public class Initializer {
 	    	
 	    }
 	    
-	    
+	    return output;
 	    
 	}
 	

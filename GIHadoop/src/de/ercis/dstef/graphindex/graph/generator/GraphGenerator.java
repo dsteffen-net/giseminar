@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -35,11 +37,15 @@ public class GraphGenerator {
 		result.graphs = new LinkedList<IGraph>();
 		result.occurrence = new HashMap<IGraph, Integer>();
 		result.structureIndex = new HashMap<IGraph, Set<IGraph>>();
+		result.db = new LinkedList<IGraph>();
+		result.integerIndex = new HashMap<Integer,Set<Integer>>();
 
 		
 		for(int i = 0; i < job.num_freq_sub; i++)
 		{
-			result.freq_graph.add(generateErdosRenyiGraph(job.avg_size_freq_subgraphs, job.prob));
+			IGraph fg = generateErdosRenyiGraph(job.avg_size_freq_subgraphs, job.prob);
+			result.freq_graph.add(fg);
+			result.db.add(fg);
 		}
 		
 		result.prob_frequency = new double[job.num_freq_sub];
@@ -62,6 +68,7 @@ public class GraphGenerator {
 		{
 			int size = getPoisson(job.avg_size_transactions);
 			IDynamicGraph g = new DynamicGraph(size);
+			Set<Integer> fGraphIds = new HashSet<Integer>();
 			while(g.getEdgeCount() < size)
 			{
 				int position = Arrays.binarySearch(result.prob_frequency, Math.random());
@@ -81,12 +88,23 @@ public class GraphGenerator {
 							result.occurrence.put(f, 0);
 						result.occurrence.put(f, result.occurrence.get(f)+1);
 						
+						fGraphIds.add(position);
+						
 					}
 					else
 						break;
 						
 			}
-			result.graphs.add(new StaticGraph(g));
+			IGraph graph = new StaticGraph(g);
+			result.graphs.add(graph);
+			result.db.add(graph);
+			int graphId = result.db.indexOf(graph);
+			for(int fGraph : fGraphIds)
+			{
+				if(result.integerIndex.get(fGraph) == null)
+					result.integerIndex.put(fGraph, new HashSet<Integer>());
+				result.integerIndex.get(fGraph).add(graphId);
+			}
 		}
 		
 		
