@@ -79,7 +79,26 @@ public class Initializer {
 	    	String initFilePathDest = pathDestB + FullTestBattery.INIT_FILE;
 	    	Path initFilePath = new Path(initFilePathDest);
 	    	
+	    	String queryFilePathDest = pathDestC + FullTestBattery.QUERY_FILE;
+	    	Path queryFilePath = new Path(queryFilePathDest);
+	    	
+	    	
+	    	
 	        org.apache.hadoop.io.SequenceFile.Writer initWriter = SequenceFile.createWriter(fileSystem, conf, initFilePath, IntWritable.class, WritableGraph.class);
+	        org.apache.hadoop.io.SequenceFile.Writer queryWriter = SequenceFile.createWriter(fileSystem, conf, queryFilePath, IntWritable.class, WritableGraph.class);
+	        int j = 0;
+	        for(IGraph g:output.freq_graph)
+	        {
+	        	IntWritable key = new IntWritable(j++);
+	        	WritableGraph value = new WritableGraph();
+	        	value.setGraph(g);
+	        	queryWriter.append(key, value);
+	        	initWriter.append(key, value);
+	        }
+	        queryWriter.sync();
+	        queryWriter.close();
+	        
+	        
 	        int i = 0;
 	        for(IGraph g:output.graphs)
 	        {
@@ -91,20 +110,23 @@ public class Initializer {
 	        initWriter.sync();
 	        initWriter.close();
 	        
-	        String queryFilePathDest = pathDestC + FullTestBattery.QUERY_FILE;
-	    	Path queryFilePath = new Path(queryFilePathDest);
-	        
-	        org.apache.hadoop.io.SequenceFile.Writer queryWriter = SequenceFile.createWriter(fileSystem, conf, queryFilePath, IntWritable.class, WritableGraph.class);
-	        int j = 0;
-	        for(IGraph g:output.freq_graph)
+	        String filePathD = pathDestA + "/subFrequency";
+	    	Path fPath = new Path(filePathD);
+	    	
+	        FSDataOutputStream out = fileSystem.create(fPath);
+	        out.writeUTF("Num Occurrences:");
+	        out.writeBytes("\n");
+	        for(int nfg = 0; i<output.freq_graph.size() ; i++)
 	        {
-	        	IntWritable key = new IntWritable(j++);
-	        	WritableGraph value = new WritableGraph();
-	        	value.setGraph(g);
-	        	queryWriter.append(key, value);
+	        	int size = 0;
+	        	if(output.structureIndex.get(output.freq_graph.get(nfg)) != null)
+	        		size = output.structureIndex.get(output.freq_graph.get(nfg)).size();
+	        	out.writeUTF(nfg + ": "+size);
+	        	out.writeBytes("\n");
 	        }
-	        initWriter.sync();
-	        initWriter.close();
+	        
+	        
+	       
 
 	        // Close all the file descripters
 //	        out.close();
