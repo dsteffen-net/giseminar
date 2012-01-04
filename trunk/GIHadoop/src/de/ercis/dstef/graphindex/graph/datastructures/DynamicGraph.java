@@ -145,7 +145,6 @@ public class DynamicGraph implements IDynamicGraph {
 		if(!labelMap.containsKey(label) || labelMap.get(label) == null)
 			labelMap.put(label, new HashSet<Integer>());
 		labelMap.get(label).add(vertex);
-		System.out.println("Label for index set to "+labels.get(vertex)+" for input "+label);
 	}
 	
 	private boolean vertexExists(int vertex)

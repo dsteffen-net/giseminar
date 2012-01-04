@@ -14,5 +14,7 @@ public class GraphGeneratorOutput {
 	public Map<IGraph,Set<IGraph>> structureIndex;
 	public double[] prob_frequency;
 	public List<String> labels;
+	public List<IGraph> db;
+	public Map<Integer, Set<Integer>> integerIndex;
 
 }
