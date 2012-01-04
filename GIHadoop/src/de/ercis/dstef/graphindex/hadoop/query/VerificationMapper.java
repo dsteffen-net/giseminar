@@ -3,6 +3,7 @@ package de.ercis.dstef.graphindex.hadoop.query;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,9 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import de.ercis.dstef.graphindex.graph.datastructures.IGraph;
+import de.ercis.dstef.graphindex.graph.isomorphism.BacktrackingIsomorphismTest;
+import de.ercis.dstef.graphindex.graph.isomorphism.IIsomorphismTest;
 import de.ercis.dstef.graphindex.hadoop.indexer.Index;
 import de.ercis.dstef.graphindex.hadoop.test.FullTestBattery;
 import de.ercis.dstef.graphindex.hadoop.writables.WritableGraph;
@@ -29,41 +33,49 @@ import de.ercis.dstef.graphindex.hadoop.writables.WritableIntegerSet;
 import de.ercis.graphindex.dstef.indexer.ctindex.TreeAnalyzer;
 import de.ercis.graphindex.dstef.indexer.ctindex.TreeCoder;
 
-public class CandidateMapper extends Configured
-    implements Mapper<Text, WritableIntegerSet, IntWritable, WritableIntegerSet> {
+public class VerificationMapper extends Configured
+    implements Mapper<IntWritable, WritableIntegerSet, IntWritable, WritableIntegerSet> {
 	
-	private Map<String, Set<Integer>> index = new HashMap<String, Set<Integer>>();
+	private Map<Integer, IGraph> database = new HashMap<Integer, IGraph>();
 	
 	
 
 	@Override
-	public void map(Text key, WritableIntegerSet value,
+	public void map(IntWritable key, WritableIntegerSet value,
 			OutputCollector<IntWritable, WritableIntegerSet> output, Reporter reporter)
 			throws IOException {
-			if(index != null)
+			if(database != null)
 			{
-				String code = key.toString();
-				Set<Integer> candidates = index.get(code);
-				WritableIntegerSet writableCandidates = new WritableIntegerSet();
-				writableCandidates.setIntegerSet(candidates);
-				Set<Integer> queries = value.getIntegerSet();
-				for(int i : queries)
-					output.collect(new IntWritable(i), writableCandidates);
+				int position = key.get();
+				Set<Integer> candidates = value.getIntegerSet();
+				Set<Integer> answerSet = new HashSet<Integer>();
+				WritableIntegerSet writableAnswerSet = new WritableIntegerSet();
+				IGraph pattern = database.get(position);
+				for(int c : candidates)
+				{
+					IGraph candidate = database.get(c);
+					IIsomorphismTest test = new BacktrackingIsomorphismTest();
+					boolean b = test.subIsomorph(pattern, candidate);
+					if(b)
+						answerSet.add(c);
+				}
+				writableAnswerSet.setIntegerSet(answerSet);
+				output.collect(new IntWritable(position), writableAnswerSet);
 			}
 			
 	}
 	
-	private void loadIndex(URI uri, JobConf conf)
+	private void loadDatabase(URI uri, JobConf conf)
 	{
 		try
 	    {
 	    	FileSystem fileSystem = FileSystem.get(conf);
-	    	Path indexPath = new Path(uri);
-	    	Reader indexReader = new Reader(fileSystem, indexPath, conf);
-	    	Text key = (Text) ReflectionUtils.newInstance(indexReader.getKeyClass(),conf);
-	    	WritableIntegerSet value = (WritableIntegerSet) ReflectionUtils.newInstance(indexReader.getValueClass(),conf);
-	    	while(indexReader.next(key, value))
-	    		index.put(key.toString(), value.getIntegerSet());
+	    	Path databasePath = new Path(uri);
+	    	Reader databaseReader = new Reader(fileSystem, databasePath, conf);
+	    	IntWritable key = (IntWritable) ReflectionUtils.newInstance(databaseReader.getKeyClass(),conf);
+	    	WritableGraph value = (WritableGraph) ReflectionUtils.newInstance(databaseReader.getValueClass(),conf);
+	    	while(databaseReader.next(key, value))
+	    		database.put(key.get(), value);
 	    }catch(Exception e)
 	    {
 	    	
@@ -77,7 +89,7 @@ public class CandidateMapper extends Configured
 		{
 			cachedFiles = DistributedCache.getCacheFiles(job);
 			if(cachedFiles != null && cachedFiles.length > 0)
-				loadIndex(cachedFiles[0], job);
+				loadDatabase(cachedFiles[0], job);
 		}catch(IOException e)
 		{
 			

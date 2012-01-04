@@ -1,6 +1,7 @@
 package de.ercis.dstef.graphindex.hadoop.query;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -14,18 +15,25 @@ import org.apache.hadoop.mapred.Reporter;
 import de.ercis.dstef.graphindex.hadoop.writables.WritableIntegerSet;
 
 public class CandidateReducer extends MapReduceBase
-    implements Reducer<Text, IntWritable, Text, WritableIntegerSet> {
+    implements Reducer<IntWritable, WritableIntegerSet, IntWritable, WritableIntegerSet > {
 
-  public void reduce(Text key, Iterator<IntWritable> values,
-      OutputCollector<Text,WritableIntegerSet> output, Reporter reporter) throws IOException {
+  public void reduce(IntWritable key, Iterator<WritableIntegerSet> values,
+      OutputCollector<IntWritable,WritableIntegerSet> output, Reporter reporter) throws IOException {
 
-	  WritableIntegerSet indexSet = new WritableIntegerSet();
-	  
-    while (values.hasNext()) {
-      IntWritable value = (IntWritable) values.next();
-      indexSet.getIntegerSet().add(value.get());
+	  int i = 0;
+	  WritableIntegerSet finalCandidateSet = new WritableIntegerSet();
+	  Set<Integer> partialCandidateSet = new HashSet<Integer>();
+    while (values.hasNext()) 
+    {
+    	if(i == 0)
+    		partialCandidateSet.addAll(values.next().getIntegerSet());
+    	else
+    		partialCandidateSet.retainAll(values.next().getIntegerSet());
     }
-
-    output.collect(key, indexSet);
+    
+    finalCandidateSet.setIntegerSet(partialCandidateSet);
+    output.collect(key, finalCandidateSet);
   }
+
+
 }

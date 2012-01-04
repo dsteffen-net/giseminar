@@ -42,5 +42,15 @@ public class WritableIntegerSet implements Writable {
 		for(Integer i : integerSet)
 			out.writeInt(i);
 	}
+	
+	@Override
+	public String toString()
+	{
+		String s = "WIntSet[";
+		for(int i : getIntegerSet())
+			s += i+",";
+		s += "]";
+		return s;
+	}
 
 }

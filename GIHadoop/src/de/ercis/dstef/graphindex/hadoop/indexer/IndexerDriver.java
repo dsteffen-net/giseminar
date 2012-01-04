@@ -25,8 +25,9 @@ public class IndexerDriver {
 	    JobConf conf = new JobConf(IndexerDriver.class);
 
 	    // specify output types
+	    conf.setMapOutputValueClass(IntWritable.class);
 	    conf.setOutputKeyClass(Text.class);
-	    conf.setOutputValueClass(IntWritable.class);
+	    conf.setOutputValueClass(WritableIntegerSet.class);
 
 	    // specify input and output dirs
 	   conf.setInputFormat(SequenceFileInputFormat.class);
@@ -41,13 +42,17 @@ public class IndexerDriver {
 	    
 	    FileInputFormat.setInputPaths(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.INIT_DIR));
 	    FileOutputFormat.setOutputPath(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.INDEX_DIR));
+	    
 
 	    client.setConf(conf);
+	    
 	    try {
 	      JobClient.runJob(conf);
 	    } catch (Exception e) {
 	      e.printStackTrace();
 	    }
+	    
+	    Index.loadIndexFile(run);
 	}
 
 }
