@@ -1,7 +1,6 @@
 package de.ercis.dstef.graphindex.test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -11,8 +10,6 @@ import java.util.Set;
 
 import de.ercis.dstef.graphindex.graph.datastructures.IGraph;
 import de.ercis.dstef.graphindex.graph.generator.GraphGeneratorOutput;
-import de.ercis.dstef.graphindex.graph.isomorphism.BacktrackingIsomorphismTest;
-import de.ercis.dstef.graphindex.graph.isomorphism.IIsomorphismTest;
 import de.ercis.graphindex.dstef.indexer.ctindex.TreeIndexer;
 
 public class TreeIndexerTest {

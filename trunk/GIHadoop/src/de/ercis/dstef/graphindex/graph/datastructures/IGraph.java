@@ -12,11 +12,11 @@ public interface IGraph {
 	
 	/**
 	 * Checks if there is an edge from vertex i to vertex j
-	 * @param i vertex
-	 * @param j vertex
+	 * @param source vertex
+	 * @param destination vertex
 	 * @return <true> if edge (i,j) exists, <false> otherwise
 	 */
-	boolean isEdge(int i, int j);
+	boolean isEdge(int source, int destination);
 	/**
 	 * Returns label of vertex
 	 * @param vertex 
@@ -64,7 +64,16 @@ public interface IGraph {
 	 */
 	Set<Integer> getVerticesByLabel(String label);
 	
-	public String getIdCode();
-	public void setIdCode(String label);
+	/**
+	 * Return idcode of the graph
+	 * @return idcode
+	 */
+	String getIdCode();
+	
+	/**
+	 * Set idcode externally
+	 * @param label
+	 */
+	void setIdCode(String label);
 
 }
