@@ -1,6 +1,5 @@
 package de.ercis.dstef.graphindex.test;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 import de.ercis.dstef.graphindex.graph.datastructures.IGraph;

@@ -1,15 +1,13 @@
 package de.ercis.dstef.graphindex.test;
 
-import java.util.Iterator;
-
-import de.ercis.dstef.graphindex.graph.datastructures.IGraph;
 import de.ercis.dstef.graphindex.graph.generator.GraphGenerator;
 import de.ercis.dstef.graphindex.graph.generator.GraphGeneratorJob;
 import de.ercis.dstef.graphindex.graph.generator.GraphGeneratorOutput;
 
-public class ArbitraryTests {
+public class FullTestBattery {
 
 	/**
+	 * Test local indexing/querying mechanisms
 	 * @param args
 	 */
 	public static void main(String[] args) {

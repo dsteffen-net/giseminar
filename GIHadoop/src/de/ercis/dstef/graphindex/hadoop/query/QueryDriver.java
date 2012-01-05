@@ -10,24 +10,35 @@ import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.SequenceFileOutputFormat;
-import org.apache.hadoop.mapred.TextOutputFormat;
 
-import de.ercis.dstef.graphindex.hadoop.indexer.IndexerDriver;
 import de.ercis.dstef.graphindex.hadoop.test.FullTestBattery;
 import de.ercis.dstef.graphindex.hadoop.writables.WritableIntegerSet;
 
+/**
+ * Controls the Batch Query Process
+ * @author dstef
+ *
+ */
 public class QueryDriver {
 	
 	public void processQueryBatch(String run)
 	{
+		// uncomment this method and comment the three others to not use batch queries
 //		computeSimpleQuery(run);
+		// create codes for batch of queries
 		codeBatch(run);
+		// compute candidate sets from codes
 		computeCandidateSet(run);
+		// verify candidate sets
 		computeAnswerSet(run);
 	}
 	
+	/**
+	 * Simple query process
+	 * @param run
+	 */
 	private void computeSimpleQuery(String run) {
-		// TODO Auto-generated method stub
+	
 		JobClient client = new JobClient();
 	    JobConf conf = new JobConf(QueryDriver.class);
 
@@ -41,11 +52,8 @@ public class QueryDriver {
 
 	    // specify a mapper
 	    conf.setMapperClass(QueryCoderMapperB.class);
-
-	    // specify a reducer
-//	    conf.setReducerClass(CandidateReducer.class);
-//	    conf.setCombinerClass(IndexerReducer.class);
 	    
+	    // I/O-Files	    
 	    Path indexPath = new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.INDEX_DIR+"/part-00000");
 	    DistributedCache.addCacheFile(indexPath.toUri(), conf);
 	    
@@ -62,9 +70,13 @@ public class QueryDriver {
 		
 	}
 
+	/**
+	 * Controls VerificiationMapper
+	 * @param run
+	 */
 	private void computeAnswerSet(String run) {
 		
-		// TODO Auto-generated method stub
+		
 		JobClient client = new JobClient();
 	    JobConf conf = new JobConf(QueryDriver.class);
 
@@ -79,9 +91,22 @@ public class QueryDriver {
 	    // specify a mapper
 	    conf.setMapperClass(VerificationMapper.class);
 	    
+	    /*
+	     * Setup distributed cache
+	     */
+	    
+	    // add index-file to distributed cache
 	    Path indexPath = new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.INIT_DIR+FullTestBattery.INIT_FILE);
 	    DistributedCache.addCacheFile(indexPath.toUri(), conf);
 	    
+	    // adds file of positive hosts to distributed cache if FAST_VERIFY is enabled
+	    if(FullTestBattery.FAST_VERIFY)
+	    {
+	    	Path phPath = new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.POSITIVE_HOSTS_DIR+FullTestBattery.POSITVE_HOST_FILE);
+		    DistributedCache.addCacheFile(phPath.toUri(), conf);
+	    }
+	    
+	    // Map I/O files
 	    FileInputFormat.setInputPaths(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.CANDIDATE_DIR));
 	    FileOutputFormat.setOutputPath(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.RESULT_DIR));
 
@@ -96,8 +121,13 @@ public class QueryDriver {
 		
 	}
 
+	/**
+	 * Controls CandidateMapReduce
+	 * Computes CandidateSet form QueryCodes
+	 * @param run
+	 */
 	private void computeCandidateSet(String run) {
-		// TODO Auto-generated method stub
+		
 		JobClient client = new JobClient();
 	    JobConf conf = new JobConf(QueryDriver.class);
 
@@ -114,11 +144,16 @@ public class QueryDriver {
 
 	    // specify a reducer
 	    conf.setReducerClass(CandidateReducer.class);
-//	    conf.setCombinerClass(IndexerReducer.class);
 	    
+	    /*
+	     * Setup distributed cache
+	     */
+	    
+	    // add index-file to distributed cache
 	    Path indexPath = new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.INDEX_DIR+"/part-00000");
 	    DistributedCache.addCacheFile(indexPath.toUri(), conf);
 	    
+	    // I/O - Files
 	    FileInputFormat.setInputPaths(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.BATCH_QUERY_DIR));
 	    FileOutputFormat.setOutputPath(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.CANDIDATE_DIR));
 
@@ -131,6 +166,11 @@ public class QueryDriver {
 	    }
 	}
 
+	/**
+	 * Controls BatchCoding
+	 * Computes CodeList from queries
+	 * @param run
+	 */
 	private void codeBatch(String run)
 	{
 		JobClient client = new JobClient();
@@ -151,8 +191,8 @@ public class QueryDriver {
 
 	    // specify a reducer
 	    conf.setReducerClass(QueryCoderReducer.class);
-//	    conf.setCombinerClass(IndexerReducer.class);
 	    
+	    // I/O-Files
 	    FileInputFormat.setInputPaths(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.QUERY_DIR));
 	    FileOutputFormat.setOutputPath(conf, new Path(FullTestBattery.HOME_PATH+FullTestBattery.RUN_DIR+run+FullTestBattery.BATCH_QUERY_DIR));
 

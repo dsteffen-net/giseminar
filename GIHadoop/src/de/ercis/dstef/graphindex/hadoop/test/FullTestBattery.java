@@ -2,21 +2,17 @@ package de.ercis.dstef.graphindex.hadoop.test;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile.Reader;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import de.ercis.dstef.graphindex.graph.datastructures.IGraph;
 import de.ercis.dstef.graphindex.graph.generator.GraphGeneratorJob;
 import de.ercis.dstef.graphindex.graph.generator.GraphGeneratorOutput;
 import de.ercis.dstef.graphindex.hadoop.indexer.IndexerDriver;
@@ -27,6 +23,9 @@ import de.ercis.dstef.graphindex.hadoop.writables.WritableIntegerSet;
 
 public class FullTestBattery {
 	
+	/*
+	 * Directory paths
+	 */
 	public static final String HOME_PATH = "/user/hduser/gindex";
 	public static final String SETTINGS_DIR = "/settings";
 	public static final String RUN_DIR = "/runs/";
@@ -36,15 +35,24 @@ public class FullTestBattery {
 	public static final String BATCH_QUERY_DIR = "/queries/batchcode";
 	public static final String CANDIDATE_DIR = "/candidates";
 	public static final String RESULT_DIR = "/result";
+	public static final String POSITIVE_HOSTS_DIR = "/phDir";
 	
+	/*
+	 * File paths
+	 */
 	public static final String INIT_FILE = "/initFile";
 	public static final String QUERY_FILE ="/queryFile";
+	public static final String POSITVE_HOST_FILE ="/phFile";
 	public static final String OUTPUT_FILE = "/part-00000";
 	
-	public static final boolean FAST_VERIFY = true;
+	/*
+	 * Settings
+	 */
+	public static final boolean FAST_VERIFY = true; // FAST_VERIFY should be enabled if avg_size_transactions > 50  or if defaults are changed to larger value
 	
 
 	/**
+	 * Starts Pipeline
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -52,12 +60,12 @@ public class FullTestBattery {
 		// configure GeneratorJob
 		GraphGeneratorJob job = new GraphGeneratorJob();
 		
-		job.avg_size_freq_subgraphs = 15; // default 15
-		job.num_freq_sub = 5; // default 5
+		job.avg_size_freq_subgraphs = 30; // default 15
+		job.num_freq_sub = 20; // default 5
 		job.prob = 0.3; // default 0.3
-		job.avg_size_transactions = 50; // default 50
-		job.num_transactions = 50; // default 50
-		job.num_vertex_labels = 35; // default 50
+		job.avg_size_transactions = 200; // default 50
+		job.num_transactions = 100; // default 50
+		job.num_vertex_labels = 40; // default 50
 
 		// create JobNumber
 		String run = UUID.randomUUID().toString();
@@ -70,17 +78,30 @@ public class FullTestBattery {
 		log.printAndLogHeadLine("Starting Job:" + run);
 		
 		log.printAndLog("");
+		log.printAndLog("Initializing...");
 		GraphGeneratorOutput output;
 		Initializer init = new Initializer();
 		output = init.initialize(run, job);
+		log.printAndLog("DONE");
+		log.printAndLog("Indexing");
 		IndexerDriver d = new IndexerDriver();
 		d.index(run);
+		log.printAndLog("DONE");
+		log.printAndLog("Processing Queries...");
 		QueryDriver qd = new QueryDriver();
 		qd.processQueryBatch(run);
+		log.printAndLog("DONE");
+		log.printAndLogHeadLine("Job Execution finished for:" + run);
 		evaluate(log,run,output);
 
 	}
 	
+	/**
+	 * Evaluates job execution
+	 * @param log
+	 * @param run
+	 * @param output
+	 */
 	private static void evaluate(Logger log, String run, GraphGeneratorOutput output)
 	{
 		
@@ -149,10 +170,25 @@ public class FullTestBattery {
 	    log.printAndLogBreaker();
 		
 	}
+	
+	/**
+	 * prints Set to log
+	 * @param log
+	 * @param setName
+	 * @param path
+	 */
 	private static void printLogSetFile(Logger log, String setName, Path path)
 	{
 		printLogSetFile(log, setName, path, false);
 	}
+	
+	/**
+	 * Prints Set to log
+	 * @param log
+	 * @param setName
+	 * @param path
+	 * @param graphList <true> if param is a graphList, <false> if WritableIntegerSet
+	 */
 	private static void printLogSetFile(Logger log, String setName, Path path, boolean graphList)
 	{
 		log.printAndLogHeadLine("Reading "+setName);
@@ -169,6 +205,12 @@ public class FullTestBattery {
 	    log.printEmptyLine();
 	}
 	
+	/**
+	 * Prints ListFile
+	 * @param path
+	 * @param log
+	 * @throws IOException
+	 */
 	private static void printList(Path path, Logger log)
 		throws IOException
 	{
@@ -194,6 +236,12 @@ public class FullTestBattery {
     	}
 	}
 	
+	/**
+	 * Prints GraphListFile
+	 * @param path
+	 * @param log
+	 * @throws IOException
+	 */
 	private static void printGraphList(Path path, Logger log)
 	throws IOException
 	{

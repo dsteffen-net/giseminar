@@ -10,25 +10,21 @@ public interface IDynamicGraph extends IGraph {
 	 * adds a vertex without label
 	 */
 	void addVertex();
+	
 	/**
 	 * adds a vertex with a label
 	 * @param label
 	 */
 	void addVertex(String label);
+	
 	/**
 	 * Adds an edge between two existing vertices
-	 * @param i vertex
-	 * @param j vertex
+	 * @param source vertex
+	 * @param destination vertex
 	 * @throws IndexOutOfBoundsException if vertices do not exist
 	 */
-	void addEdge(int i, int j) throws IndexOutOfBoundsException;
-	/**
-	 * removes and edge
-	 * @param i vertex
-	 * @param j vertex
-	 * @throws IndexOutOfBoundsException if edge does not exist
-	 */
-	void removeEdge(int i, int j) throws IndexOutOfBoundsException;
+	void addEdge(int source, int destination) throws IndexOutOfBoundsException;
+	
 	/**
 	 * sets the label of a vertex
 	 * @param vertex
